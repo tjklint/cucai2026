@@ -1,34 +1,11 @@
-import { Autonomous, z, adk, actions } from "@botpress/runtime";
+import { Autonomous, z } from "@botpress/runtime";
 
-const ReleasesSchema = z.array(
-  z.object({
-    tagName: z.string().describe("The Git tag name (e.g. v1.0.0)"),
-    name: z
-      .string()
-      .optional()
-      .describe("The release title, if different from the tag name"),
-    date: z
-      .string()
-      .optional()
-      .describe("Publication date in YYYY-MM-DD format"),
-    prerelease: z
-      .boolean()
-      .default(false)
-      .describe("Whether this is a pre-release version"),
-  })
-);
+const API = "https://api.github.com";
 
-function getPageContent(result: unknown): string {
-  if (typeof result === "string") return result;
-  if (result && typeof result === "object") {
-    const r = result as Record<string, unknown>;
-    if (typeof r.content === "string") return r.content;
-    if (typeof r.markdown === "string") return r.markdown;
-    if (typeof r.text === "string") return r.text;
-    if (typeof r.body === "string") return r.body;
-  }
-  return JSON.stringify(result, null, 2);
-}
+const headers: Record<string, string> = {
+  Accept: "application/vnd.github.v3+json",
+  "User-Agent": "botpress-changelogger",
+};
 
 export const listTags = new Autonomous.Tool({
   name: "listTags",
@@ -45,73 +22,61 @@ export const listTags = new Autonomous.Tool({
   output: z.string(),
 
   handler: async ({ owner, repo }) => {
-    const releasesUrl = `https://github.com/${owner}/${repo}/releases`;
+    const res = await fetch(
+      `${API}/repos/${owner}/${repo}/releases?per_page=20`,
+      { headers }
+    );
 
-    const browseResult = await actions.browser.browsePages({
-      urls: [releasesUrl],
-      waitFor: 3000,
-    });
+    if (res.ok) {
+      const releases = (await res.json()) as any[];
 
-    const results = (browseResult as any)?.results ?? browseResult;
-    const page = Array.isArray(results) ? results[0] : results;
-    const content = getPageContent(page);
+      if (releases.length > 0) {
+        const lines = [`**Releases for ${owner}/${repo}:**\n`];
 
-    if (!content || content.length < 100) {
-      // Try the tags page as a fallback
-      const tagsUrl = `https://github.com/${owner}/${repo}/tags`;
+        for (const r of releases) {
+          const date = r.published_at
+            ? r.published_at.split("T")[0]
+            : "unknown";
+          const pre = r.prerelease ? " _(pre-release)_" : "";
+          const name =
+            r.name && r.name !== r.tag_name ? ` "${r.name}"` : "";
+          lines.push(`- **${r.tag_name}**${name} - ${date}${pre}`);
+        }
 
-      const tagsBrowse = await actions.browser.browsePages({
-        urls: [tagsUrl],
-        waitFor: 3000,
-      });
+        if (releases.length >= 2) {
+          lines.push(
+            `\nTo generate a changelog, pick two tags. Example: from \`${releases[1].tag_name}\` to \`${releases[0].tag_name}\`.`
+          );
+        }
 
-      const tagResults = (tagsBrowse as any)?.results ?? tagsBrowse;
-      const tagPage = Array.isArray(tagResults) ? tagResults[0] : tagResults;
-      const tagContent = getPageContent(tagPage);
-
-      if (!tagContent || tagContent.length < 100) {
-        return `Could not fetch releases or tags for ${owner}/${repo}. Verify the repository exists and is public.`;
+        return lines.join("\n");
       }
-
-      const tags = await adk.zai.extract(tagContent, ReleasesSchema, {
-        instructions:
-          "Extract all Git tags shown on this GitHub tags page. Include the tag name and date if visible.",
-      });
-
-      if (!tags.length) {
-        return `No tags found for ${owner}/${repo}. You can still generate a changelog using branch names (e.g. \`main\`) or commit SHAs.`;
-      }
-
-      const lines = [`**Tags for ${owner}/${repo}:**\n`];
-      for (const t of tags) {
-        const date = t.date ? ` (${t.date})` : "";
-        lines.push(`- **${t.tagName}**${date}`);
-      }
-      return lines.join("\n");
     }
 
-    const releases = await adk.zai.extract(content, ReleasesSchema, {
-      instructions:
-        "Extract all releases shown on this GitHub releases page. Include the tag name, release title, date, and pre-release status.",
-    });
+    // Fallback to tags API
+    const tagsRes = await fetch(
+      `${API}/repos/${owner}/${repo}/tags?per_page=20`,
+      { headers }
+    );
 
-    if (!releases.length) {
-      return `No releases found for ${owner}/${repo}. You can still generate a changelog using branch names (e.g. \`main\`) or commit SHAs.`;
+    if (!tagsRes.ok) {
+      return `Could not fetch tags for ${owner}/${repo}. Check the repo exists and is public.`;
     }
 
-    const lines = [`**Releases for ${owner}/${repo}:**\n`];
+    const tags = (await tagsRes.json()) as any[];
 
-    for (const r of releases) {
-      const pre = r.prerelease ? " _(pre-release)_" : "";
-      const date = r.date ? ` - ${r.date}` : "";
-      const name =
-        r.name && r.name !== r.tagName ? ` "${r.name}"` : "";
-      lines.push(`- **${r.tagName}**${name}${date}${pre}`);
+    if (tags.length === 0) {
+      return `No tags or releases found for ${owner}/${repo}. You can still use branch names or commit SHAs.`;
     }
 
-    if (releases.length >= 2) {
+    const lines = [`**Tags for ${owner}/${repo}:**\n`];
+    for (const t of tags) {
+      lines.push(`- **${t.name}** (${t.commit.sha.slice(0, 7)})`);
+    }
+
+    if (tags.length >= 2) {
       lines.push(
-        `\nTo generate a changelog, pick two of these tags. For example: from \`${releases[1].tagName}\` to \`${releases[0].tagName}\`.`
+        `\nTo generate a changelog, pick two tags. Example: from \`${tags[1].name}\` to \`${tags[0].name}\`.`
       );
     }
 
