@@ -32,6 +32,7 @@ export default defineConfig({
         },
       },
       browser: { version: "browser@0.8.4", enabled: true },
+      chat: { version: "chat@0.7.6", enabled: true },
     },
   },
 });
