@@ -24,12 +24,6 @@ export default defineConfig({
         version: "github@1.1.8",
         enabled: false,
         configurationType: "manualApp",
-        config: {
-          githubAppId: "YOUR_GITHUBAPPID_HERE",
-          githubAppPrivateKey: "YOUR_GITHUBAPPPRIVATEKEY_HERE",
-          githubAppInstallationId: 0,
-          githubWebhookSecret: "YOUR_GITHUBWEBHOOKSECRET_HERE",
-        },
       },
       browser: { version: "browser@0.8.4", enabled: true },
       chat: { version: "chat@0.7.6", enabled: true },
