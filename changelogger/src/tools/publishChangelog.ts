@@ -14,13 +14,33 @@ export const publishChangelog = new Autonomous.Tool({
   output: z.string(),
 
   handler: async ({ markdown }) => {
-    const { notionPageId } = context.get("configuration");
+    const config = context.get("configuration");
+    let notionPageId = config.notionPageId;
 
-    const result = await actions.notion.appendBlocksToPage({
-      pageId: notionPageId,
-      markdownText: markdown,
-    });
+    if (!notionPageId) {
+      return `Error: notionPageId is not configured. Set it in the bot configuration dashboard.`;
+    }
 
-    return `Changelog published to Notion page ${notionPageId}. Block IDs: ${result.blockIds?.join(", ") ?? "created"}`;
+    // Format as UUID with dashes if needed (Notion API expects dashed format)
+    const hex = notionPageId.replace(/-/g, "");
+    if (hex.length === 32) {
+      notionPageId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+
+    try {
+      const result = await actions.notion.appendBlocksToPage({
+        pageId: notionPageId,
+        markdownText: markdown,
+      });
+
+      return `Published to Notion. Page ID used: "${notionPageId}". API response: ${JSON.stringify(result)}`;
+    } catch (err: any) {
+      const details = JSON.stringify(
+        err,
+        Object.getOwnPropertyNames(err ?? {}),
+        2
+      );
+      return `Failed to publish to Notion. Page ID: "${notionPageId}". Full error: ${details}`;
+    }
   },
 });

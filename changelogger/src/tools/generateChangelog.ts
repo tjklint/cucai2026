@@ -107,43 +107,55 @@ export const generateChangelog = new Autonomous.Tool({
   output: z.string(),
 
   handler: async ({ owner, repo, fromRef, toRef }) => {
-    const { githubToken } = context.get("configuration");
-    const headers = {
-      Accept: "application/vnd.github.v3+json",
-      Authorization: `Bearer ${githubToken}`,
-      "User-Agent": "botpress-changelogger",
-    };
+    try {
+      const { githubToken } = context.get("configuration");
+      const headers = {
+        Accept: "application/vnd.github.v3+json",
+        Authorization: `Bearer ${githubToken}`,
+        "User-Agent": "botpress-changelogger",
+      };
 
-    const res = await fetch(
-      `${GITHUB_API}/repos/${owner}/${repo}/compare/${fromRef}...${toRef}`,
-      { headers }
-    );
+      // Try the refs as-is first, then with "v" prefix if 404
+      let res = await fetch(
+        `${GITHUB_API}/repos/${owner}/${repo}/compare/${fromRef}...${toRef}`,
+        { headers }
+      );
 
-    if (!res.ok) {
-      return `Failed to compare ${fromRef}...${toRef}. Status: ${res.status}. Verify both refs exist.`;
-    }
+      if (res.status === 404) {
+        const vFrom = fromRef.startsWith("v") ? fromRef : `v${fromRef}`;
+        const vTo = toRef.startsWith("v") ? toRef : `v${toRef}`;
+        res = await fetch(
+          `${GITHUB_API}/repos/${owner}/${repo}/compare/${vFrom}...${vTo}`,
+          { headers }
+        );
+      }
 
-    const comparison = (await res.json()) as {
-      commits: Array<{
-        sha: string;
-        commit: { message: string; author: { name: string } };
-        author: { login: string } | null;
-      }>;
-    };
+      if (!res.ok) {
+        const body = await res.text();
+        return `Failed to compare ${fromRef}...${toRef}. Status: ${res.status}. Body: ${body}`;
+      }
 
-    if (!comparison.commits?.length) {
-      return `No commits found between ${fromRef} and ${toRef}.`;
-    }
+      const comparison = (await res.json()) as {
+        commits: Array<{
+          sha: string;
+          commit: { message: string; author: { name: string } };
+          author: { login: string } | null;
+        }>;
+      };
 
-    const commitSummary = comparison.commits
-      .map((c) => {
-        const author = c.author?.login ?? c.commit.author.name;
-        return `- ${c.commit.message.split("\n")[0]} (by ${author})`;
-      })
-      .join("\n");
+      if (!comparison.commits?.length) {
+        return `No commits found between ${fromRef} and ${toRef}.`;
+      }
 
-    const data = await adk.zai.extract(commitSummary, ChangelogSchema, {
-      instructions: `Categorize these Git commits into the correct changelog sections:
+      const commitSummary = comparison.commits
+        .map((c) => {
+          const author = c.author?.login ?? c.commit.author.name;
+          return `- ${c.commit.message.split("\n")[0]} (by ${author})`;
+        })
+        .join("\n");
+
+      const data = await adk.zai.extract(commitSummary, ChangelogSchema, {
+        instructions: `Categorize these Git commits into the correct changelog sections:
 
 - "breaking": Changes that break backward compatibility
 - "features": New functionality (feat:, add, implement, introduce)
@@ -157,8 +169,12 @@ Rules:
 - Extract PR numbers from messages like (#42)
 - Include author usernames
 - Skip merge commits`,
-    });
+      });
 
-    return formatMarkdown(owner, repo, fromRef, toRef, data);
+      return formatMarkdown(owner, repo, fromRef, toRef, data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return `Error generating changelog: ${message}`;
+    }
   },
 });
