@@ -6,8 +6,8 @@ export default defineConfig({
     "An AI agent that generates changelogs from GitHub releases and publishes them to Notion",
 
   defaultModels: {
-    autonomous: "openai:gpt-4o-mini",
-    zai: "openai:gpt-4o-mini",
+    autonomous: "cerebras:gpt-oss-120b",
+    zai: "cerebras:gpt-oss-120b",
   },
 
   configuration: {
