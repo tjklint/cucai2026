@@ -1,5 +1,6 @@
 {
   "botId": "c4f982c3-cac8-499b-9b47-33bca2f66811",
   "workspaceId": "wkspace_01K45V6E7F88GE83SKZY1BWNFQ",
-  "apiUrl": "https://api.botpress.cloud"
+  "apiUrl": "https://api.botpress.cloud",
+  "devId": "69cd483e-a8fd-4546-9502-23a1bedeab7b"
 }
