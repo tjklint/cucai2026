@@ -2,13 +2,7 @@ import { z, defineConfig } from "@botpress/runtime";
 
 export default defineConfig({
   name: "changelogger",
-  description:
-    "An AI agent that generates beautiful, categorized changelogs from GitHub repositories",
-
-  defaultModels: {
-    autonomous: "openai:gpt-4o",
-    zai: "openai:gpt-4o-mini",
-  },
+  description: "An AI agent built with Botpress ADK",
 
   bot: {
     state: z.object({}),
@@ -19,14 +13,6 @@ export default defineConfig({
   },
 
   dependencies: {
-    integrations: {
-      github: {
-        version: "github@1.1.8",
-        enabled: false,
-        configurationType: "manualApp",
-      },
-      browser: { version: "browser@0.8.4", enabled: true },
-      chat: { version: "chat@0.7.6", enabled: true },
-    },
+    integrations: {},
   },
 });
