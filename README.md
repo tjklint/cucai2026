@@ -6,7 +6,7 @@
 
 ### What We're Building
 
-An AI agent that watches your GitHub repos, generates beautiful changelogs when releases ship, and publishes them straight to Notion — all powered by the [Botpress Agent Development Kit](https://botpress.com/docs/adk/introduction).
+An AI agent that watches your GitHub repos, generates beautiful changelogs when releases ship, and publishes them straight to Notion - all powered by the [Botpress Agent Development Kit](https://botpress.com/docs/adk/introduction).
 
 ```
 PR Merged on GitHub
@@ -38,11 +38,11 @@ See the full [Workshop Instructions](./changelogger/WORKSHOP.md) for setup, conf
 
 ### Key Concepts Covered
 
-- **Triggers** — reacting to GitHub integration events
-- **Workflows** — durable, long-running processes
-- **Tools** — AI-callable functions with typed schemas
-- **`execute()`** — the autonomous AI loop
-- **`zai.extract()`** — LLM-powered structured data extraction
-- **Integration Actions** — calling Notion from your agent
-- **Conversations** — building interactive chat interfaces
-- **Hooks** — injecting behavior into the execution lifecycle
+- **Triggers** - reacting to GitHub integration events
+- **Workflows** - durable, long-running processes
+- **Tools** - AI-callable functions with typed schemas
+- **`execute()`** - the autonomous AI loop
+- **`zai.extract()`** - LLM-powered structured data extraction
+- **Integration Actions** - calling Notion from your agent
+- **Conversations** - building interactive chat interfaces
+- **Hooks** - injecting behavior into the execution lifecycle

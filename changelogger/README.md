@@ -1,6 +1,6 @@
 # Changelogger Workshop
 
-Build an AI agent that automatically generates changelogs from GitHub releases and publishes them to Notion — using the Botpress Agent Development Kit (ADK).
+Build an AI agent that automatically generates changelogs from GitHub releases and publishes them to Notion - using the Botpress Agent Development Kit (ADK).
 
 ## Prerequisites
 
@@ -14,20 +14,20 @@ Build an AI agent that automatically generates changelogs from GitHub releases a
 
 ## Part 1: Project Setup
 
-### 1.1 — Scaffold the project
+### 1.1 - Scaffold the project
 
 ```bash
 adk init changelogger
 cd changelogger
 ```
 
-### 1.2 — Log in to Botpress Cloud
+### 1.2 - Log in to Botpress Cloud
 
 ```bash
 adk login
 ```
 
-### 1.3 — Install integrations
+### 1.3 - Install integrations
 
 We need three integrations: **GitHub** (for PR merge triggers), **Notion** (for publishing), and **Chat** (for testing via CLI).
 
@@ -37,7 +37,7 @@ adk install notion
 adk install chat
 ```
 
-### 1.4 — Generate types
+### 1.4 - Generate types
 
 Run a build to generate the type definitions we'll use throughout:
 
@@ -49,7 +49,7 @@ adk build
 
 ## Part 2: Configuration
 
-### 2.1 — Set up secrets
+### 2.1 - Set up secrets
 
 Create a `.env` file in the project root (it's already in `.gitignore`):
 
@@ -71,7 +71,7 @@ NOTION_SECRET=your_notion_internal_integration_secret
 - **GitHub Webhook Secret**: Any random string (e.g. `openssl rand -hex 16`).
 - **Notion Secret**: Create an [internal integration](https://www.notion.so/profile/integrations) in Notion, then copy the secret.
 
-### 2.2 — Update `agent.config.ts`
+### 2.2 - Update `agent.config.ts`
 
 Replace the contents of `agent.config.ts` with:
 
@@ -134,20 +134,20 @@ export default defineConfig({
 
 **Key things to note:**
 
-- `defaultModels` — which LLMs to use for autonomous execution and Zai calls
-- `configuration.schema` — defines config variables (`githubToken`, `notionPageId`) set in the Botpress Cloud dashboard at runtime
-- `dependencies.integrations` — the integrations we installed, with secrets from `.env`
+- `defaultModels` - which LLMs to use for autonomous execution and Zai calls
+- `configuration.schema` - defines config variables (`githubToken`, `notionPageId`) set in the Botpress Cloud dashboard at runtime
+- `dependencies.integrations` - the integrations we installed, with secrets from `.env`
 
-### 2.3 — Set configuration variables
+### 2.3 - Set configuration variables
 
 After running `adk dev` for the first time, go to the Botpress Cloud dashboard:
 
 1. Open your bot's settings
 2. Under **Configuration**, set:
-   - `githubToken` — same PAT from your `.env`
-   - `notionPageId` — the 32-character hex ID from your Notion page URL (e.g. from `https://notion.so/My-Page-734fc6a7d9a64f31af4a105b0d98d256`, use `734fc6a7d9a64f31af4a105b0d98d256`)
+   - `githubToken` - same PAT from your `.env`
+   - `notionPageId` - the 32-character hex ID from your Notion page URL (e.g. from `https://notion.so/My-Page-734fc6a7d9a64f31af4a105b0d98d256`, use `734fc6a7d9a64f31af4a105b0d98d256`)
 
-### 2.4 — Connect Notion to the page
+### 2.4 - Connect Notion to the page
 
 In Notion, open the page you want changelogs published to, then:
 
@@ -161,13 +161,13 @@ In Notion, open the page you want changelogs published to, then:
 
 Tools are functions that the AI agent can call. We'll build three.
 
-### 3.1 — Create the tools directory
+### 3.1 - Create the tools directory
 
 ```bash
 mkdir -p src/tools
 ```
 
-### 3.2 — `getLatestReleases.ts`
+### 3.2 - `getLatestReleases.ts`
 
 This tool fetches the latest releases from a GitHub repo via the REST API.
 
@@ -241,11 +241,11 @@ export const getLatestReleases = new Autonomous.Tool({
 
 **Concepts introduced:**
 
-- `Autonomous.Tool` — defines a tool the AI can call during `execute()`
-- `z.object(...)` — Zod schema for type-safe input/output
-- `context.get("configuration")` — reads bot config variables set in the dashboard
+- `Autonomous.Tool` - defines a tool the AI can call during `execute()`
+- `z.object(...)` - Zod schema for type-safe input/output
+- `context.get("configuration")` - reads bot config variables set in the dashboard
 
-### 3.3 — `generateChangelog.ts`
+### 3.3 - `generateChangelog.ts`
 
 This is the core tool. It fetches the commit diff between two tags from GitHub, then uses `adk.zai.extract()` to have an LLM categorize the commits into a structured changelog.
 
@@ -435,10 +435,10 @@ Rules:
 
 **Concepts introduced:**
 
-- `adk.zai.extract()` — uses an LLM to extract structured data (matching a Zod schema) from unstructured text. This is the magic: raw commit messages go in, a categorized changelog comes out.
-- The `v` prefix fallback — handles both `v1.0.0` and `1.0.0` tag formats.
+- `adk.zai.extract()` - uses an LLM to extract structured data (matching a Zod schema) from unstructured text. This is the magic: raw commit messages go in, a categorized changelog comes out.
+- The `v` prefix fallback - handles both `v1.0.0` and `1.0.0` tag formats.
 
-### 3.4 — `publishChangelog.ts`
+### 3.4 - `publishChangelog.ts`
 
 This tool publishes markdown to a Notion page using the Notion integration's `appendBlocksToPage` action.
 
@@ -484,13 +484,13 @@ export const publishChangelog = new Autonomous.Tool({
 
 **Concepts introduced:**
 
-- `actions.notion.appendBlocksToPage()` — calling an integration action directly. The Notion integration converts markdown to Notion blocks automatically.
+- `actions.notion.appendBlocksToPage()` - calling an integration action directly. The Notion integration converts markdown to Notion blocks automatically.
 
 ---
 
 ## Part 4: The Trigger and Workflow
 
-### 4.1 — Understanding the flow
+### 4.1 - Understanding the flow
 
 When a PR is merged on GitHub:
 
@@ -501,9 +501,9 @@ GitHub PR Merged
             --> AI orchestrates: get releases -> generate changelog -> publish to Notion
 ```
 
-**Why a workflow?** Triggers only receive `{ event }` — they don't have access to `execute()`. Workflows do, so the trigger starts a workflow which runs the autonomous AI loop.
+**Why a workflow?** Triggers only receive `{ event }` - they don't have access to `execute()`. Workflows do, so the trigger starts a workflow which runs the autonomous AI loop.
 
-### 4.2 — Create the workflow
+### 4.2 - Create the workflow
 
 Create `src/workflows/changelog.ts`:
 
@@ -546,11 +546,11 @@ Your task:
 
 **Concepts introduced:**
 
-- `Workflow` — a durable, long-running process
-- `execute()` — the autonomous AI loop. You give it instructions and tools, and it decides how to use them.
-- `input`/`output` schemas — typed contracts for what the workflow receives and returns
+- `Workflow` - a durable, long-running process
+- `execute()` - the autonomous AI loop. You give it instructions and tools, and it decides how to use them.
+- `input`/`output` schemas - typed contracts for what the workflow receives and returns
 
-### 4.3 — Create the trigger
+### 4.3 - Create the trigger
 
 Delete the placeholder trigger file, then create the real one.
 
@@ -581,9 +581,9 @@ export default new Trigger({
 
 **Concepts introduced:**
 
-- `Trigger` — listens for integration events (in this case, GitHub PR merges)
-- `event.pullRequest.repository` — typed payload from the GitHub integration
-- `changelogWorkflow.start()` — starts a workflow instance with input data
+- `Trigger` - listens for integration events (in this case, GitHub PR merges)
+- `event.pullRequest.repository` - typed payload from the GitHub integration
+- `changelogWorkflow.start()` - starts a workflow instance with input data
 
 ---
 
@@ -641,15 +641,15 @@ If a tool returns an error, tell the user what went wrong clearly and concisely.
 
 **Concepts introduced:**
 
-- `Conversation` — handles messages from a specific channel
-- `hooks.onBeforeTool` — runs before each tool call, used here to send progress messages so the user isn't left waiting in silence
+- `Conversation` - handles messages from a specific channel
+- `hooks.onBeforeTool` - runs before each tool call, used here to send progress messages so the user isn't left waiting in silence
 - Same `execute()` pattern as the workflow, but in a conversational context
 
 ---
 
 ## Part 6: Build and Test
 
-### 6.1 — Build
+### 6.1 - Build
 
 ```bash
 adk build
@@ -657,7 +657,7 @@ adk build
 
 If the build succeeds, you're good to go.
 
-### 6.2 — Start the dev server
+### 6.2 - Start the dev server
 
 ```bash
 adk dev
@@ -665,7 +665,7 @@ adk dev
 
 This starts a local dev server with hot reloading. The console is available at http://localhost:3001.
 
-### 6.3 — Test via CLI chat
+### 6.3 - Test via CLI chat
 
 In a separate terminal:
 
@@ -681,7 +681,7 @@ Try these prompts:
 > Generate a changelog for vercel/next.js from v15.0.0 to v15.1.0
 ```
 
-### 6.4 — Deploy
+### 6.4 - Deploy
 
 When you're happy with the results:
 
@@ -729,7 +729,7 @@ PR Merged (GitHub)
 | `Trigger` | `prMerged.ts` | Listens for integration events |
 | `Workflow` | `changelog.ts` | Durable, long-running process with `execute()` |
 | `Autonomous.Tool` | `src/tools/*.ts` | Functions the AI can call |
-| `execute()` | `changelog.ts`, `chat.ts` | Autonomous AI loop — give it instructions + tools |
+| `execute()` | `changelog.ts`, `chat.ts` | Autonomous AI loop - give it instructions + tools |
 | `adk.zai.extract()` | `generateChangelog.ts` | LLM-powered structured data extraction |
 | `actions.notion.*` | `publishChangelog.ts` | Calling integration actions |
 | `context.get()` | All tools | Accessing bot configuration at runtime |
@@ -740,15 +740,15 @@ PR Merged (GitHub)
 
 ## Troubleshooting
 
-**"Could not find integration 'notion'"** — Make sure `enabled: true` is set for the integration in `agent.config.ts`.
+**"Could not find integration 'notion'"** - Make sure `enabled: true` is set for the integration in `agent.config.ts`.
 
-**GitHub API returns 404** — Check that the tag names exist. The tool auto-retries with a `v` prefix (e.g. `1.0.0` -> `v1.0.0`).
+**GitHub API returns 404** - Check that the tag names exist. The tool auto-retries with a `v` prefix (e.g. `1.0.0` -> `v1.0.0`).
 
-**Notion publish fails** — Make sure:
+**Notion publish fails** - Make sure:
 1. The Notion page is connected to your integration (page `...` menu > Connections)
 2. The `notionPageId` is the 32-character hex ID from the page URL
 3. The integration secret in `.env` matches the one in Notion
 
-**"notionPageId is not configured"** — Set it in the Botpress Cloud dashboard under your bot's Configuration settings.
+**"notionPageId is not configured"** - Set it in the Botpress Cloud dashboard under your bot's Configuration settings.
 
-**Bot doesn't respond in chat** — Make sure the `chat` integration is installed and enabled.
+**Bot doesn't respond in chat** - Make sure the `chat` integration is installed and enabled.
