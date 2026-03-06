@@ -665,16 +665,6 @@ IMPORTANT:
 
 ---
 
-## Part 6: Delete Remaining Placeholders
-
-Clean up the auto-generated placeholder files. Files in `src/` directories are auto-registered, so leftover `export default {}` placeholders can cause conflicts.
-
-```bash
-rm src/workflows/index.ts
-```
-
----
-
 ## Part 7: Build and Test
 
 ### 7.1 — Build
