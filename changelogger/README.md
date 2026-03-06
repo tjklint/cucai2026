@@ -206,8 +206,7 @@ export const getLatestReleases = new Autonomous.Tool({
       );
 
       if (!res.ok) {
-        const body = await res.text();
-        return `Could not fetch releases for ${owner}/${repo}. Status: ${res.status}. Body: ${body}`;
+        return `Could not fetch releases for ${owner}/${repo} (status ${res.status}).`;
       }
 
       const releases = (await res.json()) as Array<{
@@ -386,8 +385,7 @@ export const generateChangelog = new Autonomous.Tool({
       }
 
       if (!res.ok) {
-        const body = await res.text();
-        return `Failed to compare ${fromRef}...${toRef}. Status: ${res.status}. Body: ${body}`;
+        return `Failed to compare ${fromRef}...${toRef} (status ${res.status}). Verify both refs exist.`;
       }
 
       const comparison = (await res.json()) as {
@@ -463,33 +461,22 @@ export const publishChangelog = new Autonomous.Tool({
   output: z.string(),
 
   handler: async ({ markdown }) => {
-    const config = context.get("configuration");
-    let notionPageId = config.notionPageId;
+    const { notionPageId } = context.get("configuration");
 
     if (!notionPageId) {
-      return `Error: notionPageId is not configured. Set it in the bot configuration dashboard.`;
-    }
-
-    // Format as UUID with dashes if needed (Notion API expects dashed format)
-    const hex = notionPageId.replace(/-/g, "");
-    if (hex.length === 32) {
-      notionPageId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+      return "Error: notionPageId is not configured. Set it in the bot configuration dashboard.";
     }
 
     try {
-      const result = await actions.notion.appendBlocksToPage({
+      await actions.notion.appendBlocksToPage({
         pageId: notionPageId,
         markdownText: markdown,
       });
 
-      return `Published to Notion. Page ID used: "${notionPageId}". API response: ${JSON.stringify(result)}`;
-    } catch (err: any) {
-      const details = JSON.stringify(
-        err,
-        Object.getOwnPropertyNames(err ?? {}),
-        2
-      );
-      return `Failed to publish to Notion. Page ID: "${notionPageId}". Full error: ${details}`;
+      return "Changelog published to Notion.";
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return `Failed to publish to Notion: ${message}`;
     }
   },
 });
@@ -498,7 +485,6 @@ export const publishChangelog = new Autonomous.Tool({
 **Concepts introduced:**
 
 - `actions.notion.appendBlocksToPage()` — calling an integration action directly. The Notion integration converts markdown to Notion blocks automatically.
-- UUID formatting — Notion page IDs need dashes, but users often copy them without.
 
 ---
 
@@ -629,15 +615,11 @@ export default new Conversation({
 When a user provides a GitHub repository (as "owner/repo" or a URL) and optionally a tag range:
 1. If they specified two tags, call generateChangelog directly with those as fromRef and toRef
 2. If they only specified a repo, call getLatestReleases first to show available releases
-3. If the changelog was generated successfully (not an error), show it to the user and ask if they want to publish it to Notion
+3. If the changelog was generated successfully, show it to the user and ask if they want to publish it to Notion
 4. If yes, call publishChangelog with the markdown
 5. NEVER publish error messages or failed results to Notion
 
-IMPORTANT:
-- Always show the full changelog output to the user
-- If a tool returns an error, show the EXACT error message to the user verbatim so they can debug it
-- Never paraphrase or summarize tool errors - copy the full error text into your response
-- After publishing, show the full tool response including the page ID and API response`,
+If a tool returns an error, tell the user what went wrong clearly and concisely.`,
       tools: [getLatestReleases, generateChangelog, publishChangelog],
       hooks: {
         onBeforeTool: async ({ tool }) => {
@@ -665,9 +647,9 @@ IMPORTANT:
 
 ---
 
-## Part 7: Build and Test
+## Part 6: Build and Test
 
-### 7.1 — Build
+### 6.1 — Build
 
 ```bash
 adk build
@@ -675,7 +657,7 @@ adk build
 
 If the build succeeds, you're good to go.
 
-### 7.2 — Start the dev server
+### 6.2 — Start the dev server
 
 ```bash
 adk dev
@@ -683,7 +665,7 @@ adk dev
 
 This starts a local dev server with hot reloading. The console is available at http://localhost:3001.
 
-### 7.3 — Test via CLI chat
+### 6.3 — Test via CLI chat
 
 In a separate terminal:
 
@@ -699,7 +681,7 @@ Try these prompts:
 > Generate a changelog for vercel/next.js from v15.0.0 to v15.1.0
 ```
 
-### 7.4 — Deploy
+### 6.4 — Deploy
 
 When you're happy with the results:
 
