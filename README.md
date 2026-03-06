@@ -17,12 +17,6 @@ PR Merged on GitHub
       --> Publishes formatted changelog to Notion
 ```
 
-### Projects
-
-| Project | Description | Guide |
-|---|---|---|
-| [**changelogger**](./changelogger) | GitHub-to-Notion changelog generator | [Workshop Instructions](./changelogger/WORKSHOP.md) |
-
 ### Getting Started
 
 ```bash
