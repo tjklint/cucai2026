@@ -30,8 +30,7 @@ export const getLatestReleases = new Autonomous.Tool({
       );
 
       if (!res.ok) {
-        const body = await res.text();
-        return `Could not fetch releases for ${owner}/${repo}. Status: ${res.status}. Body: ${body}`;
+        return `Could not fetch releases for ${owner}/${repo} (status ${res.status}).`;
       }
 
       const releases = (await res.json()) as Array<{

@@ -131,8 +131,7 @@ export const generateChangelog = new Autonomous.Tool({
       }
 
       if (!res.ok) {
-        const body = await res.text();
-        return `Failed to compare ${fromRef}...${toRef}. Status: ${res.status}. Body: ${body}`;
+        return `Failed to compare ${fromRef}...${toRef} (status ${res.status}). Verify both refs exist.`;
       }
 
       const comparison = (await res.json()) as {
