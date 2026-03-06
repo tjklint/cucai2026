@@ -6,7 +6,7 @@
 
 ### What We're Building
 
-An AI agent that watches your GitHub repos, generates beautiful changelogs when releases ship, and publishes them straight to Notion — all powered by the [Botpress Agent Development Kit](https://botpress.com/docs/for-developers/adk/overview).
+An AI agent that watches your GitHub repos, generates beautiful changelogs when releases ship, and publishes them straight to Notion — all powered by the [Botpress Agent Development Kit](https://botpress.com/docs/adk/introduction).
 
 ```
 PR Merged on GitHub
