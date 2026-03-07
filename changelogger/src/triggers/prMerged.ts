@@ -6,7 +6,7 @@ export default new Trigger({
   events: ["github:pullRequestMerged"],
 
   handler: async ({ event }) => {
-    const { owner, name: repo } = event.pullRequest.repository;
+    const { owner, name: repo } = event.payload.pullRequest.repository;
 
     await changelogWorkflow.start({
       owner: owner.handle,

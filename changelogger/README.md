@@ -140,12 +140,15 @@ export default defineConfig({
 
 ### 2.3 - Set configuration variables
 
-After running `adk dev` for the first time, go to the Botpress Cloud dashboard:
+After running `adk dev` for the first time, set the configuration variables using the ADK CLI:
 
-1. Open your bot's settings
-2. Under **Configuration**, set:
-   - `githubToken` - same PAT from your `.env`
-   - `notionPageId` - the 32-character hex ID from your Notion page URL (e.g. from `https://notion.so/My-Page-734fc6a7d9a64f31af4a105b0d98d256`, use `734fc6a7d9a64f31af4a105b0d98d256`)
+```bash
+adk config:set githubToken "<your GitHub PAT>"
+adk config:set notionPageId "<your Notion page ID>"
+```
+
+- `githubToken` - same PAT from your `.env`
+- `notionPageId` - the 32-character hex ID from your Notion page URL (e.g. from `https://notion.so/My-Page-734fc6a7d9a64f31af4a105b0d98d256`, use `734fc6a7d9a64f31af4a105b0d98d256`)
 
 ### 2.4 - Connect Notion to the page
 
